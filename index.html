@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi Search Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+            transition: background 0.3s ease, color 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 48px;
+            font-weight: 300;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 0;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .search-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            padding-bottom: 40px;
+        }
+
+        .search-card {
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        body.light-mode .search-card {
+            background: white;
+        }
+
+        body.dark-mode .search-card,
+        body:not(.light-mode) .search-card {
+            background: #2a2a3e;
+        }
+
+        .search-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .engine-name {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        body.light-mode .engine-name {
+            color: #333;
+        }
+
+        body.dark-mode .engine-name,
+        body:not(.light-mode) .engine-name {
+            color: #e0e0e0;
+        }
+
+        .pin-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            padding: 5px;
+        }
+
+        .pin-button:hover {
+            transform: scale(1.2);
+        }
+
+        .pin-button.pinned {
+            filter: drop-shadow(0 0 3px gold);
+        }
+
+        .search-box {
+            border-radius: 50px;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.3s ease;
+        }
+
+        body.light-mode .search-box {
+            background: #f5f5f5;
+        }
+
+        body.dark-mode .search-box,
+        body:not(.light-mode) .search-box {
+            background: #1a1a2e;
+        }
+
+        body.light-mode .search-box:focus-within {
+            background: #e8e8e8;
+        }
+
+        body.dark-mode .search-box:focus-within,
+        body:not(.light-mode) .search-box:focus-within {
+            background: #0f0f1e;
+        }
+
+        .search-icon {
+            color: #999;
+            font-size: 18px;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            padding: 12px 0;
+            background: transparent;
+        }
+
+        body.light-mode .search-input {
+            color: #333;
+        }
+
+        body.dark-mode .search-input,
+        body:not(.light-mode) .search-input {
+            color: #e0e0e0;
+        }
+
+        .search-input::placeholder {
+            color: #999;
+        }
+
+        .search-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-button:active {
+            transform: scale(0.98);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .theme-toggle {
+                position: relative;
+                right: auto;
+                margin: 20px auto 0;
+                display: inline-flex;
+            }
+
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-card {
+                padding: 20px;
+            }
+
+            .engine-name {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Multi Search Portal</h1>
+        <p>Choose your preferred search engine</p>
+        <button class="theme-toggle" id="themeToggle">
+            <span id="themeIcon">🌙</span>
+            <span id="themeText">Dark Mode</span>
+        </button>
+    </div>
+
+    <div class="search-grid" id="searchGrid"></div>
+
+    <script>
+        const searchEngines = [
+            {
+                id: 'google',
+                name: 'Google',
+                url: 'https://www.google.com/search?q=',
+                placeholder: 'Search Google'
+            },
+            {
+                id: 'bing',
+                name: 'Bing',
+                url: 'https://www.bing.com/search?q=',
+                placeholder: 'Search Bing'
+            },
+            {
+                id: 'duckduckgo',
+                name: 'DuckDuckGo',
+                url: 'https://duckduckgo.com/?q=',
+                placeholder: 'Search DuckDuckGo'
+            },
+            {
+                id: 'yahoo',
+                name: 'Yahoo',
+                url: 'https://search.yahoo.com/search?p=',
+                placeholder: 'Search Yahoo'
+            },
+            {
+                id: 'ecosia',
+                name: 'Ecosia',
+                url: 'https://www.ecosia.org/search?q=',
+                placeholder: 'Search Ecosia'
+            },
+            {
+                id: 'startpage',
+                name: 'StartPage',
+                url: 'https://www.startpage.com/do/search?q=',
+                placeholder: 'Search StartPage'
+            },
+            {
+                id: 'qwant',
+                name: 'Qwant',
+                url: 'https://www.qwant.com/?q=',
+                placeholder: 'Search Qwant'
+            },
+            {
+                id: 'brave',
+                name: 'Brave Search',
+                url: 'https://search.brave.com/search?q=',
+                placeholder: 'Search Brave'
+            },
+            {
+                id: 'yandex',
+                name: 'Yandex',
+                url: 'https://yandex.com/search/?text=',
+                placeholder: 'Search Yandex'
+            },
+            {
+                id: 'swisscows',
+                name: 'Swisscows',
+                url: 'https://swisscows.com/web?query=',
+                placeholder: 'Search Swisscows'
+            },
+            {
+                id: 'mojeek',
+                name: 'Mojeek',
+                url: 'https://www.mojeek.com/search?q=',
+                placeholder: 'Search Mojeek'
+            },
+            {
+                id: 'ddglite',
+                name: 'DuckDuckGo Lite',
+                url: 'https://duckduckgo.com/lite/?q=',
+                placeholder: 'Search DDG Lite'
+            },
+            {
+                id: 'youcom',
+                name: 'You.com',
+                url: 'https://you.com/search?q=',
+                placeholder: 'Search You.com'
+            }
+        ];
+
+        let pinnedEngines = [];
+        let isDarkMode = false;
+
+        // Load saved preferences
+        function loadPreferences() {
+            const savedTheme = localStorage.getItem('theme');
+            const savedPinned = localStorage.getItem('pinnedEngines');
+            
+            if (savedTheme === 'dark') {
+                isDarkMode = true;
+                document.body.classList.add('dark-mode');
+            } else {
+                isDarkMode = false;
+                document.body.classList.add('light-mode');
+            }
+            updateThemeButton();
+            
+            if (savedPinned) {
+                pinnedEngines = JSON.parse(savedPinned);
+            }
+        }
+
+        // Save preferences
+        function savePreferences() {
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            localStorage.setItem('pinnedEngines', JSON.stringify(pinnedEngines));
+        }
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+
+        function updateThemeButton() {
+            if (isDarkMode) {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.remove('light-mode', 'dark-mode');
+            document.body.classList.add(isDarkMode ? 'dark-mode' : 'light-mode');
+            updateThemeButton();
+            savePreferences();
+        });
+
+        const searchGrid = document.getElementById('searchGrid');
+
+        function createSearchCard(engine) {
+            const card = document.createElement('div');
+            card.className = 'search-card';
+            card.dataset.engineId = engine.id;
+            
+            const isPinned = pinnedEngines.includes(engine.id);
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="engine-name">${engine.name}</div>
+                    <button class="pin-button ${isPinned ? 'pinned' : ''}" data-engine-id="${engine.id}">
+                        ${isPinned ? '⭐' : '☆'}
+                    </button>
+                </div>
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        placeholder="${engine.placeholder}"
+                        autocomplete="off"
+                        data-url="${engine.url}"
+                    >
+                    <button class="search-button">Go</button>
+                </div>
+            `;
+
+            const input = card.querySelector('.search-input');
+            const button = card.querySelector('.search-button');
+            const pinButton = card.querySelector('.pin-button');
+
+            function handleSearch() {
+                const query = input.value.trim();
+                if (query) {
+                    window.open(engine.url + encodeURIComponent(query), '_blank');
+                }
+            }
+
+            button.addEventListener('click', handleSearch);
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleSearch();
+                }
+            });
+
+            pinButton.addEventListener('click', function() {
+                const engineId = this.dataset.engineId;
+                const index = pinnedEngines.indexOf(engineId);
+                
+                if (index > -1) {
+                    pinnedEngines.splice(index, 1);
+                    this.textContent = '☆';
+                    this.classList.remove('pinned');
+                } else {
+                    pinnedEngines.push(engineId);
+                    this.textContent = '⭐';
+                    this.classList.add('pinned');
+                }
+                
+                savePreferences();
+                renderSearchEngines();
+            });
+
+            return card;
+        }
+
+        function renderSearchEngines() {
+            searchGrid.innerHTML = '';
+            
+            // Sort engines: pinned first, then others
+            const sortedEngines = [...searchEngines].sort((a, b) => {
+                const aPin = pinnedEngines.includes(a.id);
+                const bPin = pinnedEngines.includes(b.id);
+                
+                if (aPin && !bPin) return -1;
+                if (!aPin && bPin) return 1;
+                return 0;
+            });
+            
+            sortedEngines.forEach(engine => {
+                searchGrid.appendChild(createSearchCard(engine));
+            });
+        }
+
+        // Initialize
+        loadPreferences();
+        renderSearchEngines();
+    </script>
+</body>
+</html>
